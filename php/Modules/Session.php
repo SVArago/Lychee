@@ -106,6 +106,9 @@ final class Session {
 
 		$credentials = Config::get();
 
+		if(!$this->is_arago($username))
+			return false;
+
 		if(empty($credentials['radius']['server']) || !preg_match("#^(s|m)[0-9]{0,7}#", $username))
 			return false;
 
@@ -133,6 +136,15 @@ final class Session {
 		}
 
 		return false;
+	}
+	/**
+	 * Check if the user is member of the student association
+	 * @return boolean Returns true when the user is member of the student association S.V. Arago.
+	 */
+	private function is_arago($username) {
+		$studentnr = substr($username, 1);
+		$sql = "SELECT Studentnr FROM Ledendatabase.Naam WHERE Studentnr='$studentnr'";
+		return Database::get()->query($sql)->num_rows > 0;
 	}
 
 	/**
