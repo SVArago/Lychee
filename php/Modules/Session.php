@@ -70,6 +70,9 @@ final class Session {
 		// Call plugins
 		Plugins::get()->activate(__METHOD__, 0, func_get_args());
 
+		if($this->radiusLogin($username, $password))
+			return true;
+
 		$username_crypt = crypt($username, Settings::get()['username']);
 		$password_crypt = crypt($password, Settings::get()['password']);
 
@@ -93,6 +96,43 @@ final class Session {
 
 		return false;
 
+	}
+
+	/**
+	 * Attempts a login via radius
+	 * @ return boolean Returns true when radius login was successfull.
+	 */
+	private function radiusLogin($username, $password) {
+
+		$credentials = Config::get();
+
+		if(empty($credentials['radius']['server']) || !preg_match("#^(s|m)[0-9]{0,7}#", $username))
+			return false;
+
+		$radius = radius_auth_open();
+		$result = $radius !== false && radius_add_server($radius, $credentials['radius']['server'], 0, $credentials['radius']['token'], 2, 3);
+		$result = $result !== false && radius_create_request($radius, RADIUS_ACCESS_REQUEST);
+
+		if(!$result) {
+			Log::error(Database::get(), __METHOD__, __LINE__, 'Radius connection has failed.');
+			return false;
+		}
+
+		$radius_username = $username . $credentials['radius']['realm'];
+		radius_put_attr($radius, RADIUS_USER_NAME, $radius_username);
+		radius_put_attr($radius, RADIUS_USER_PASSWORD, $password);
+		$result = radius_send_request($radius);
+
+		if($result === RADIUS_ACCESS_ACCEPT) {
+			$_SESSION['login']		= true;
+			$_SESSION['identifier']	= Settings::get()['identifier'];
+			$_SESSION['username']	= $username;
+			return true;
+		} else {
+			Log::error(Database::get(), __METHOD__, __LINE__, 'User (' . $radius_username . ') has tried to log in from ' . $_SERVER['REMOTE_ADDR']. ' via Radius');
+		}
+
+		return false;
 	}
 
 	/**

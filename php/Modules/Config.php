@@ -39,6 +39,10 @@ $config = "<?php
 \$dbName = '$name'; // Database name
 \$dbTablePrefix = '$prefix'; // Table prefix
 
+\$radiusServer = '';
+\$radiusRealm = '';
+\$radiusToken = '';
+
 ?>";
 
 		// Save file
@@ -69,7 +73,12 @@ $config = "<?php
 			'user'     => $dbUser,
 			'password' => $dbPassword,
 			'name'     => $dbName,
-			'prefix'   => $dbTablePrefix
+			'prefix'   => $dbTablePrefix,
+			'radius'   => array(
+				'server' => $radiusServer,
+				'token'  => $radiusToken,
+				'realm'  => $radiusRealm,
+			)
 		));
 
 	}
