@@ -143,8 +143,14 @@ final class Session {
 	 */
 	private function is_arago($username) {
 		$studentnr = substr($username, 1);
-		$sql = "SELECT Studentnr FROM Ledendatabase.Naam WHERE Studentnr='$studentnr'";
-		return Database::get()->query($sql)->num_rows > 0;
+		$sql = "SELECT Studentnr FROM Ledendatabase.Naam WHERE Studentnr=?";
+		$stmt = Database::get()->prepare($sql);
+
+		$stmt->bind_param('i', $studentnr);
+		$stmt->execute();
+		$stmt->store_result();
+
+		return $stmt->num_rows > 0;
 	}
 
 	/**
