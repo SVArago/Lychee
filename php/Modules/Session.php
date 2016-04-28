@@ -106,10 +106,10 @@ final class Session {
 
 		$credentials = Config::get();
 
-		if(!$this->is_arago($username))
+		if(empty($credentials['radius']['server']) || !preg_match("#^(s|m)[0-9]{0,7}#", $username))
 			return false;
 
-		if(empty($credentials['radius']['server']) || !preg_match("#^(s|m)[0-9]{0,7}#", $username))
+		if(!$this->is_arago($username))
 			return false;
 
 		$radius = radius_auth_open();
